@@ -1,0 +1,7 @@
+name: MapMarkerLimit
+version: '${project.version}'
+main: ru.deelter.maplimit.MapMarkerLimit
+api-version: 1.18
+prefix: MapMarkerLimit
+authors: [ deelter ]
+description: Laggy banners limit count
