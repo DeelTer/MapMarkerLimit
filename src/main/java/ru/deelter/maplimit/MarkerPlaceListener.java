@@ -7,7 +7,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_18_R2.map.CraftMapRenderer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -26,9 +25,16 @@ import java.util.Map;
 
 public class MarkerPlaceListener implements Listener {
 
-	protected static void setup(MapMarkerLimit instance) {
+	private final Class<?> mapRenderClass;
+
+	public MarkerPlaceListener(MapMarkerLimit instance) {
+		try {
+			this.mapRenderClass = Class.forName("org.bukkit.craftbukkit." + MapMarkerLimit.getNmsVersion() + ".map.CraftMapRenderer");
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
 		PluginManager manager = Bukkit.getPluginManager();
-		manager.registerEvents(new MarkerPlaceListener(), instance);
+		manager.registerEvents(this, instance);
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -65,6 +71,7 @@ public class MarkerPlaceListener implements Listener {
 	}
 
 	private Map<String, MapIconBanner> getMapIcons(@NotNull WorldMap worldMap) {
+
 		try {
 			Field field = worldMap.getClass().getDeclaredField("p");
 			field.setAccessible(true);
@@ -75,11 +82,10 @@ public class MarkerPlaceListener implements Listener {
 	}
 
 	private WorldMap getWorldMap(@NotNull MapRenderer renderer) {
-		CraftMapRenderer craftRender = (CraftMapRenderer) renderer;
 		try {
-			Field field = craftRender.getClass().getDeclaredField("worldMap");
+			Field field = mapRenderClass.getDeclaredField("worldMap");
 			field.setAccessible(true);
-			return (WorldMap) field.get(craftRender);
+			return (WorldMap) field.get(renderer);
 		} catch (NoSuchFieldException | IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
